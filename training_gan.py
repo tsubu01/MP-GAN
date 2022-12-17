@@ -1,3 +1,10 @@
+import sys
+#sys.path.append('/Users/uri.almog/tsubu/GAN-main/')
+import models
+from models import deep_model
+from models import gan_class
+from models.gan_class import GAN
+
 import pandas as pd
 import io
 import datetime as dt
@@ -17,7 +24,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from mpl_toolkits.mplot3d import Axes3D
-import plotly.express as px
+#import plotly.express as px
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import SGD
@@ -36,7 +43,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import confusion_matrix
 
-import graphviz
+#import graphviz
 
 import pickle
 
@@ -46,7 +53,20 @@ import time
 
 from IPython.display import display, clear_output
 
-from models.gan_class import GAN
+import requests
+
+requests.packages.urllib3.disable_warnings()
+import ssl
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    # Legacy Python that doesn't verify HTTPS certificates by default
+    pass
+else:
+    # Handle target environment that doesn't support HTTPS verification
+    ssl._create_default_https_context = _create_unverified_https_context
+
+
 
 mnist_train, mnist_test = tf.keras.datasets.mnist.load_data('mnist.npz')
 
@@ -125,6 +145,11 @@ print(mygan.generator.summary())
 
 # train model
 mygan.train(mnist_train_vectors_0, 
-            n_epochs=100, 
+            n_epochs=2, 
             n_batch=256,  
             n_eval=1)
+
+
+if __name__ == "__main__":
+    print('hello')
+

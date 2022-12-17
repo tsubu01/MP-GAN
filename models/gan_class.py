@@ -1,5 +1,15 @@
+import tensorflow as tf
+import numpy as np
+from ipywidgets import IntProgress
+from IPython.display import display
+import time
+from IPython.display import display, clear_output
+import matplotlib
+import matplotlib.pyplot as plt
 
-from deep_model import DeepModel
+from .deep_model import *
+
+
 
 class GAN():
     def __init__(self, isplot, keepshape=True, istable=False, lr=0.0002, lr_steps=1, decay_rate=0.9):
@@ -38,11 +48,13 @@ class GAN():
         self.disc_opt = Adam(lr=0.0002, beta_1=0.5)
         model.compile(loss='binary_crossentropy', optimizer=self.disc_opt, metrics=['accuracy'])
         self.discriminator = model
+        print('Discriminator is now defined')
     
     def define_generator(self, latent_dim, layers):
         self.latent_dim = latent_dim        
         model = DeepModel(self.latent_dim, layers).create_model()
         self.generator = model
+        print('Generator is now defined')
         
     def define_gan(self):
         #make discriminator weights not trainable.
@@ -60,6 +72,7 @@ class GAN():
                       optimizer=self.gan_opt,
                       metrics=['accuracy'])
         self.gan = model
+        print('GAN is now defined')
      
     def generate_real_samples(self, n, realsamplearray):#, keepshape=self.keep_shape):
         keepshape=self.keep_shape
@@ -179,6 +192,7 @@ class GAN():
               file_prefix=None):
 
         # determine half the size of one batch, for updating the discriminator
+        latent_dim = self.latent_dim
         g_model = self.generator
         d_model = self.discriminator
         gan_model = self.gan
