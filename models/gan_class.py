@@ -6,13 +6,14 @@ import time
 from IPython.display import display, clear_output
 import matplotlib
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 from .deep_model import *
 
 
 
 class GAN():
-    def __init__(self, isplot, keepshape=True, lr=0.0002, lr_steps=1, decay_rate=0.9):
+    def __init__(self, isplot, keepshape=True, lr=0.0002, lr_steps=1, decay_rate=0.9, scaler=None):
         self.generator = None
         self.discriminator = None
         self.gan = None
@@ -32,9 +33,10 @@ class GAN():
         self.batches_per_epoch = 0
         self.epoch = 0
         self.decay_rate = decay_rate
+        self.scaler = scaler
 
     def _learning_rate_scheduler(self):
-	return(self.lr * self.decay_rate ** -(self.epoch))
+	return(self.lr * self.decay_rate **(-(self.epoch)))
 
     def set_batches_per_epoch(self, dataset, batch_size):
         self.batches_per_epoch = int(dataset.shape[0]/batch_size)
@@ -190,11 +192,12 @@ class GAN():
         return "{:.2f}".format(acc_real), "{:.2f}".format(acc_fake)
         
     # train the generator and discriminator
-    def train(self, dataset, n_epochs=10000, n_batch=8,
+    def train(self, dataset, scaler=None, n_epochs=10000, n_batch=8,
               n_eval=400, scaler=None, progress_bar=True,
               save_after_epoch_mult=10, start_epoch=0, 
               file_prefix=None):
-
+        
+        self.scaler = scaler
         # determine half the size of one batch, for updating the discriminator
         latent_dim = self.latent_dim
         g_model = self.generator
