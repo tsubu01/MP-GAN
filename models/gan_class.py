@@ -30,6 +30,11 @@ class GAN():
         self.decayed_lr = {}
         self.train_fig = None
         self.batches_per_epoch = 0
+        self.epoch = 0
+        self.decay_rate = decay_rate
+
+    def _learning_rate_scheduler(self):
+	return(self.lr * self.decay_rate ** -(self.epoch))
 
     def set_batches_per_epoch(self, dataset, batch_size):
         self.batches_per_epoch = int(dataset.shape[0]/batch_size)
@@ -44,7 +49,7 @@ class GAN():
         model = DeepModel(self.n_inputs, layers).create_model()
         #uri self.disc_opt = SGD(learning_rate=self.lr_schedule_func(2*self.lr_steps))
         #uri self.disc_opt = SGD(learning_rate=self.lr_schedule_func(2*self.lr_steps))
-        self.disc_opt = Adam(lr=0.0002, beta_1=0.5)
+        self.disc_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
         model.compile(loss='binary_crossentropy', optimizer=self.disc_opt, metrics=['accuracy'])
         self.discriminator = model
         print('Discriminator is now defined')
@@ -64,7 +69,7 @@ class GAN():
         model.add(generator)
         model.add(discriminator)
         #uri self.gan_opt = SGD(learning_rate=self.lr_schedule_func(self.lr_steps))
-        self.gan_opt = Adam(lr=0.0002, beta_1=0.5)
+        self.gan_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
         #print('>>> decrease lr every {} steps'.format(self.lr_steps))
 
         model.compile(loss='binary_crossentropy',
