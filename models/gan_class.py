@@ -36,7 +36,7 @@ class GAN():
         self.scaler = scaler
 
     def _learning_rate_scheduler(self):
-	return(self.lr * self.decay_rate **(-(self.epoch)))
+        return(self.lr * self.decay_rate **(-(self.epoch)))
 
     def set_batches_per_epoch(self, dataset, batch_size):
         self.batches_per_epoch = int(dataset.shape[0]/batch_size)
