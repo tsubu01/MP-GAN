@@ -193,7 +193,7 @@ class GAN():
         
     # train the generator and discriminator
     def train(self, dataset, scaler=None, n_epochs=10000, n_batch=8,
-              n_eval=400, scaler=None, progress_bar=True,
+              n_eval=400, progress_bar=True,
               save_after_epoch_mult=10, start_epoch=0, 
               file_prefix=None):
         
