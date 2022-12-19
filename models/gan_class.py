@@ -12,7 +12,7 @@ from .deep_model import *
 
 
 class GAN():
-    def __init__(self, isplot, keepshape=True, istable=False, lr=0.0002, lr_steps=1, decay_rate=0.9):
+    def __init__(self, isplot, keepshape=True, lr=0.0002, lr_steps=1, decay_rate=0.9):
         self.generator = None
         self.discriminator = None
         self.gan = None
@@ -20,7 +20,6 @@ class GAN():
         self.n_outputs = None
         self.is_plot = isplot
         self.keep_shape = keepshape
-        self.is_table = istable
         self.lr = lr
         self.gan_opt = None
         self.disc_opt = None
@@ -74,7 +73,7 @@ class GAN():
         self.gan = model
         print('GAN is now defined')
      
-    def generate_real_samples(self, n, realsamplearray):#, keepshape=self.keep_shape):
+    def generate_real_samples(self, n, realsamplearray):
         keepshape=self.keep_shape
         # generate mnist samples
         #print(realsamplearray.shape)
