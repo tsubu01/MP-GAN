@@ -130,7 +130,8 @@ class GAN():
         if self.is_table:
             return X, y
         else:
-            return X/255, y
+            #return X/255, y
+            return X, y
     
     # generate points in latent space as input for the generator
     def generate_latent_points(self, latent_dim, n):
@@ -194,6 +195,8 @@ class GAN():
         # scatter plot real and fake data points
         if self.is_plot:
             #descaling real and fake data with scaler
+            
+            """
             if len(x_real.shape) == 3:
                 #x_fake for some reason is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
@@ -210,6 +213,7 @@ class GAN():
                 
                 x_real = np.clip(x_real, 0, 255).astype(int)
                 x_fake = np.clip(x_fake, 0, 255).astype(int)
+            """
 
 
             print('shape of fake data: ', x_fake.shape)
