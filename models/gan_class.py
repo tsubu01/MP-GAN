@@ -10,10 +10,31 @@ from sklearn.preprocessing import StandardScaler
 
 from .deep_model import *
 
+tf.config.run_functions_eagerly(True)
+
+def debug_func(x):
+    #print('shape of input: ', x.shape)
+    print('value of input: ', x)
+        
+def array3ddebug(x):
+    print('shape: ', x.shape) 
+    print('is 1st element == 2nd element? ', np.all(x[0]==x[1]))
+
+single_value_func = tf.function(debug_func)
+
+array_3d_func = tf.function(array3ddebug)
+    
+                       
 
 
 class GAN():
-    def __init__(self, isplot, keepshape=True, lr=0.0002, lr_steps=1, decay_rate=0.9, scaler=None):
+    def __init__(self, isplot, 
+                 keepshape=True, 
+                 is_table=False,
+                 lr=0.0002, 
+                 lr_steps=1, 
+                 decay_rate=0.9, 
+                 scaler=None):
         self.generator = None
         self.discriminator = None
         self.gan = None
@@ -21,6 +42,7 @@ class GAN():
         self.n_outputs = None
         self.is_plot = isplot
         self.keep_shape = keepshape
+        self.is_table = is_table
         self.lr = lr
         self.gan_opt = None
         self.disc_opt = None
@@ -34,7 +56,9 @@ class GAN():
         self.epoch = 0
         self.decay_rate = decay_rate
         self.scaler = scaler
-
+    
+    
+    
     def _learning_rate_scheduler(self):
         return(self.lr * self.decay_rate **(-(self.epoch)))
 
@@ -114,7 +138,7 @@ class GAN():
         x_input = randn(latent_dim * n)
         # reshape into a batch of inputs for the network
         x_input = x_input.reshape(n, latent_dim)
-        #print(x_input)
+        array_3d_func(x_input)
         return x_input
  
     # use the generator to generate n fake examples, with class labels
@@ -122,7 +146,9 @@ class GAN():
         # generate points in latent space
         x_input = self.generate_latent_points(latent_dim, n)
         # predict outputs
+        # debug:
         X = self.generator.predict(x_input)
+        array_3d_func(X)
         # create class labels
         y = zeros((n,1))
         #print(X.shape, y.shape)
@@ -132,7 +158,6 @@ class GAN():
     # evaluate the discriminator and plot real and fake points
     def summarize_performance(self, epoch, latent_dim, n=200, dataset=None, scaler=None):
         # prepare real samples
-        
         generator = self.generator
         discriminator = self.discriminator
         x_real, y_real = self.generate_real_samples(n, dataset)
@@ -170,21 +195,49 @@ class GAN():
         if self.is_plot:
             #descaling real and fake data with scaler
             if len(x_real.shape) == 3:
+                #x_fake for some reason is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
-                x_real = x_real.reshape(-1, x_real.shape[-2]*x_real.shape[-1])
-                x_fake = x_fake.reshape(-1, x_fake.shape[-2]*x_fake.shape[-1])
-                x_real = scaler.inverse_transform(x_real)
-                x_fake = scaler.inverse_transform(x_fake)
-                x_real = x_real.reshape(dim0, dim1, dim2)
-                x_fake = x_fake.reshape(dim0, dim1, dim2)
+                x_fake = np.squeeze(x_fake)
+                
+                x_real_vect = x_real.reshape(-1, x_real.shape[-2]*x_real.shape[-1])
+                x_fake_vect = x_fake.reshape(-1, x_fake.shape[-2]*x_fake.shape[-1])
+                
+                x_real_vect_descaled = scaler.inverse_transform(x_real_vect)
+                x_fake_vect_descaled = scaler.inverse_transform(x_fake_vect)
+                
+                x_real = x_real_vect_descaled.reshape(dim0, dim1, dim2)
+                x_fake = x_fake_vect_descaled.reshape(dim0, dim1, dim2)
+                
+                x_real = np.clip(x_real, 0, 255).astype(int)
+                x_fake = np.clip(x_fake, 0, 255).astype(int)
 
 
-            disparray = np.zeros((28*2,28*5))
-            for k in range(5):
-                disparray[:28,28*k:28*(k+1)] = np.clip((np.squeeze(x_fake[k])*255).astype(int),0,255)
-                disparray[28:, 28*k:28*(k+1)] = np.clip((np.squeeze(x_real[k])*255).astype(int),0,255)
+            print('shape of fake data: ', x_fake.shape)
+            print('checking fake data: size 0, size 1, are both arrays identical. ', x_fake[0].shape, 
+                  x_fake[1].shape, np.all(x_fake[0]==x_fake[1]))
+            disparray = np.zeros((28*2,28*n))
+            print(x_fake.shape)
+            """
+            for k in range(n):
+                #disparray[:28,28*k:28*(k+1)] = np.clip((np.squeeze(x_fake[k])*255).astype(int),0,255)
+                #disparray[28:, 28*k:28*(k+1)] = np.clip((np.squeeze(x_real[k])*255).astype(int),0,255)
+                
+                disparray[:28, 28*k:28*(k+1)] = x_fake[k, :, :]
+                disparray[28:, 28*k:28*(k+1)] = x_real[k, :, :]
+            
+            
+            
+                
             fig, axs = pyplot.subplots(1,1)
             axs.imshow(disparray, cmap='gray_r')
+            """
+            
+            fig, (ax0, ax1) = pyplot.subplots(1,2)
+            ax0.imshow(x_fake[0], cmap='gray_r')
+            ax1.imshow(x_real[0], cmap='gray_r')
+          
+            
+            
             if self.is_plot:
                 plt.show()
             res = "{:.2f}".format(acc_fake)
@@ -200,14 +253,22 @@ class GAN():
                 display(temp_out)
 
             temp_out['fake/real'] = (5*['fake'])+(5*['real'])
+            
         return "{:.2f}".format(acc_real), "{:.2f}".format(acc_fake)
         
     # train the generator and discriminator
-    def train(self, dataset, scaler=None, n_epochs=10000, n_batch=8,
-              n_eval=400, progress_bar=True,
-              save_after_epoch_mult=10, start_epoch=0, 
+    def train(self, 
+              dataset, 
+              scaler=None, 
+              n_epochs=1, 
+              n_batch=8,
+              n_eval=400, #num of epoch intervals to do an eval process
+              progress_bar=True,
+              save_after_epoch_mult=10, 
+              start_epoch=0, 
               file_prefix=None):
         
+        print('**** now training gan ***')
         self.scaler = scaler
         # determine half the size of one batch, for updating the discriminator
         latent_dim = self.latent_dim
@@ -230,6 +291,7 @@ class GAN():
                     count += 1
                 x_real, y_real = self.generate_real_samples(half_batch, dataset)
                 # prepare fake examples
+                single_value_func(n_batch)
                 x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
                 # update discriminator
 
@@ -244,7 +306,7 @@ class GAN():
                 # update the generator via the discriminator's error
                 gan_model.train_on_batch(x_gan, y_gan)
             if (i+1) % n_eval == 0:
-                acc_real, acc_fake = self.summarize_performance(i, latent_dim, dataset=dataset, scaler=scaler)
+                acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=n_batch, dataset=dataset, scaler=scaler)
             if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
