@@ -18,11 +18,11 @@ def debug_func(x):
         
 def array3ddebug(x):
     print('shape: ', x.shape) 
-    print('is 1st element == 2nd element? ', np.all(x[0]==x[1]))
+    print('is 1st element == 2nd element? diff is ', np.sum(x[0]-x[1]))
 
 #single_value_func = tf.function(debug_func)
 
-#array_3d_func = tf.function(array3ddebug)
+array_3d_func = tf.function(array3ddebug)
     
                        
 
