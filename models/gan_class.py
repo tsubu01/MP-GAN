@@ -196,7 +196,7 @@ class GAN():
         if self.is_plot:
             #descaling real and fake data with scaler
             
-            """
+            
             if len(x_real.shape) == 3:
                 #x_fake for some reason is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
@@ -213,7 +213,7 @@ class GAN():
                 
                 x_real = np.clip(x_real, 0, 255).astype(int)
                 x_fake = np.clip(x_fake, 0, 255).astype(int)
-            """
+            
 
 
             print('shape of fake data: ', x_fake.shape)
