@@ -168,6 +168,17 @@ class GAN():
         
         # scatter plot real and fake data points
         if self.is_plot:
+            #descaling real and fake data with scaler
+            if len(x_real.shape) == 3:
+                dim0, dim1, dim2 = x_real.shape
+                x_real = x_real.reshape(-1, x_real.shape[-2]*x_real.shape[-1])
+                x_fake = x_fake.reshape(-1, x_fake.shape[-2]*x_fake.shape[-1])
+                x_real = scaler.inverse_transform(x_real)
+                x_fake = scaler.inverse_transform(x_fake)
+                x_real = x_real.reshape(dim0, dim1, dim2)
+                x_fake = x_fake.reshape(dim0, dim1, dim2)
+
+
             disparray = np.zeros((28*2,28*5))
             for k in range(5):
                 disparray[:28,28*k:28*(k+1)] = np.clip((np.squeeze(x_fake[k])*255).astype(int),0,255)
