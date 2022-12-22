@@ -20,9 +20,9 @@ def array3ddebug(x):
     print('shape: ', x.shape) 
     print('is 1st element == 2nd element? ', np.all(x[0]==x[1]))
 
-single_value_func = tf.function(debug_func)
+#single_value_func = tf.function(debug_func)
 
-array_3d_func = tf.function(array3ddebug)
+#array_3d_func = tf.function(array3ddebug)
     
                        
 
@@ -139,7 +139,7 @@ class GAN():
         x_input = randn(latent_dim * n)
         # reshape into a batch of inputs for the network
         x_input = x_input.reshape(n, latent_dim)
-        array_3d_func(x_input)
+        #array_3d_func(x_input)
         return x_input
  
     # use the generator to generate n fake examples, with class labels
@@ -149,7 +149,7 @@ class GAN():
         # predict outputs
         # debug:
         X = self.generator.predict(x_input)
-        array_3d_func(X)
+        #array_3d_func(X)
         # create class labels
         y = zeros((n,1))
         #print(X.shape, y.shape)
@@ -221,7 +221,7 @@ class GAN():
                   x_fake[1].shape, np.all(x_fake[0]==x_fake[1]))
             disparray = np.zeros((28*2,28*n))
             print(x_fake.shape)
-            """
+            
             for k in range(n):
                 #disparray[:28,28*k:28*(k+1)] = np.clip((np.squeeze(x_fake[k])*255).astype(int),0,255)
                 #disparray[28:, 28*k:28*(k+1)] = np.clip((np.squeeze(x_real[k])*255).astype(int),0,255)
@@ -234,12 +234,12 @@ class GAN():
                 
             fig, axs = pyplot.subplots(1,1)
             axs.imshow(disparray, cmap='gray_r')
-            """
             
+            """
             fig, (ax0, ax1) = pyplot.subplots(1,2)
             ax0.imshow(x_fake[0], cmap='gray_r')
             ax1.imshow(x_real[0], cmap='gray_r')
-          
+            """
             
             
             if self.is_plot:
@@ -295,7 +295,7 @@ class GAN():
                     count += 1
                 x_real, y_real = self.generate_real_samples(half_batch, dataset)
                 # prepare fake examples
-                single_value_func(n_batch)
+                #single_value_func(n_batch)
                 x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
                 # update discriminator
 
@@ -310,7 +310,7 @@ class GAN():
                 # update the generator via the discriminator's error
                 gan_model.train_on_batch(x_gan, y_gan)
             if (i+1) % n_eval == 0:
-                acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=n_batch, dataset=dataset, scaler=scaler)
+                acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=10, dataset=dataset, scaler=scaler)
             if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
