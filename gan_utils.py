@@ -38,7 +38,6 @@ from sklearn.metrics import confusion_matrix
 
 import graphviz
 
-import shap
 
 import pickle
 
