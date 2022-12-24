@@ -261,7 +261,7 @@ class GAN():
             if self.is_plot:
                 plt.show()
             if (curr_epoch + 1) % save_after_epoch_mult == 0:
-                plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray')
+                plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray_r')
             plt.close('all')
         if self.is_table:
             fake_then_real = np.concatenate([x_fake[:5], x_real[:5]], axis=0)
