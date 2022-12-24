@@ -158,7 +158,15 @@ class GAN():
         
         
     # evaluate the discriminator and plot real and fake points
-    def summarize_performance(self, epoch, latent_dim, n=200, dataset=None, scaler=None):
+    def summarize_performance(self, 
+                              epoch, 
+                              latent_dim, 
+                              n=200, 
+                              dataset=None, 
+                              scaler=None, 
+                              curr_epoch=1, 
+                              save_after_epoch_mult=10):
+        
         # prepare real samples
         generator = self.generator
         discriminator = self.discriminator
@@ -248,11 +256,12 @@ class GAN():
             ax1.imshow(x_real[0], cmap='gray_r')
             """
             
-            
+            res = "{:.2f}".format(acc_fake)
+
             if self.is_plot:
                 plt.show()
-            res = "{:.2f}".format(acc_fake)
-            plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray')
+            if (curr_epoch + 1) % save_after_epoch_mult == 0:
+                plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray')
             plt.close('all')
         if self.is_table:
             fake_then_real = np.concatenate([x_fake[:5], x_real[:5]], axis=0)
@@ -316,7 +325,13 @@ class GAN():
                 # update the generator via the discriminator's error
                 gan_model.train_on_batch(x_gan, y_gan)
             if (i+1) % n_eval == 0:
-                acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=10, dataset=dataset, scaler=scaler)
+                acc_real, acc_fake = self.summarize_performance(i, 
+                                                                latent_dim, 
+                                                                n=10, 
+                                                                dataset=dataset, 
+                                                                scaler=scaler, 
+                                                                curr_epoch=i, 
+                                                                save_after_epoch_mult=save_after_epoch_mult)
             if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
