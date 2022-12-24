@@ -317,28 +317,8 @@ class GAN():
                 gan_model.train_on_batch(x_gan, y_gan)
             if (i+1) % n_eval == 0:
                 acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=10, dataset=dataset, scaler=scaler)
-            if False:#(i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
+            if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
                 self.discriminator.save(f'{file_prefix}_temp_discriminator_epoch_{i}_{acc_real}_{acc_fake}.model')
                 self.gan.save(f'{file_prefix}_temp_gan_epoch_{i}_{acc_real}_{acc_fake}.model')
-        
-    """   
-    def lr_schedule_func(self, initial_lr):
-        print('batches per epoch', self.batches_per_epoch)
-        #print('in lr_scheduler, ', batches_per_epoch, self.decay_rate, self.lr)
-        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-        initial_learning_rate=self.lr,
-        decay_steps=float(self.batches_per_epoch,),#self.batches_per_epoch,
-        decay_rate=self.decay_rate)
-        return lr_schedule
-    """
-    """
-    def lr_schedule_func(self, batches_per_epoch=20):
-        print('in lr_scheduler, ', batches_per_epoch, self.decay_rate, self.lr)
-        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-        initial_learning_rate=self.lr,
-        decay_steps=batches_per_epoch,
-        decay_rate=self.decay_rate)
-        return lr_schedule
-    """
