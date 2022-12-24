@@ -1,9 +1,3 @@
-#sources:
-#https://machinelearningmastery.com/how-to-develop-a-generative-adversarial-network-for-a-1-dimensional-function-from-scratch-in-keras/
-#https://blog.keras.io/building-autoencoders-in-keras.html
-#sources: https://sinyi-chou.github.io/classification-pr-curve/
-#! pip install arrow
-
 import pandas as pd
 import numpy as np
 
