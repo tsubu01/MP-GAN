@@ -60,12 +60,10 @@ class GAN():
     
     
     def _learning_rate_scheduler(self):
-        return(self.lr * self.decay_rate **(-(self.epoch)))
+        return self.lr
+        #return(self.lr * self.decay_rate **(-(self.epoch)))
 
-    def set_batches_per_epoch(self, dataset, batch_size):
-        self.batches_per_epoch = int(dataset.shape[0]/batch_size)
-
-        
+    
     # define the standalone discriminator model
     def define_discriminator(self, n_inputs, layers):
         #layers is a list of lists; each member is a 3-member list with the format: [layer_type, layer/kernel size, activation]
@@ -130,8 +128,11 @@ class GAN():
         if self.is_table:
             return X, y
         else:
-            #return X/255, y
-            return X, y
+            if self.scaler:
+                return X, y
+            else:
+                return X.astype('float32')/255, y
+         
     
     # generate points in latent space as input for the generator
     def generate_latent_points(self, latent_dim, n):
@@ -149,7 +150,7 @@ class GAN():
         # predict outputs
         # debug:
         X = self.generator.predict(x_input)
-        #array_3d_func(X)
+        array_3d_func(X)
         # create class labels
         y = zeros((n,1))
         #print(X.shape, y.shape)
@@ -201,16 +202,22 @@ class GAN():
                 #x_fake for some reason is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
                 x_fake = np.squeeze(x_fake)
+                if scaler:
+                    print('*** the scaler is not none')
+                    x_real_vect = x_real.reshape(dim0, dim1*dim2)
+                    x_fake_vect = x_fake.reshape(dim0, dim1*dim2)
                 
-                x_real_vect = x_real.reshape(-1, x_real.shape[-2]*x_real.shape[-1])
-                x_fake_vect = x_fake.reshape(-1, x_fake.shape[-2]*x_fake.shape[-1])
+                    x_real_vect_descaled = scaler.inverse_transform(x_real_vect)
+                    x_fake_vect_descaled = scaler.inverse_transform(x_fake_vect)
                 
-                x_real_vect_descaled = scaler.inverse_transform(x_real_vect)
-                x_fake_vect_descaled = scaler.inverse_transform(x_fake_vect)
+                    x_real = x_real_vect_descaled.reshape(dim0, dim1, dim2)
+                    x_fake = x_fake_vect_descaled.reshape(dim0, dim1, dim2)
                 
-                x_real = x_real_vect_descaled.reshape(dim0, dim1, dim2)
-                x_fake = x_fake_vect_descaled.reshape(dim0, dim1, dim2)
-                
+                if not scaler:
+                    print('*** the scaler is none')
+                    x_real = 255 * x_real
+                    x_fake = 255 * x_fake
+                  
                 x_real = np.clip(x_real, 0, 255).astype(int)
                 x_fake = np.clip(x_fake, 0, 255).astype(int)
             
@@ -271,7 +278,6 @@ class GAN():
               save_after_epoch_mult=10, 
               start_epoch=0, 
               file_prefix=None):
-        
         print('**** now training gan ***')
         self.scaler = scaler
         # determine half the size of one batch, for updating the discriminator
@@ -281,15 +287,15 @@ class GAN():
         gan_model = self.gan
         half_batch = int(n_batch / 2)
         # manually enumerate epochs
-        #uri batches_per_epoch = int(dataset.shape[0]/n_batch)
-        batches_per_epoch = self.batches_per_epoch
+        self.batches_per_epoch = int(dataset.shape[0]/n_batch)
+        print('**** batches per epoch: ', self.batches_per_epoch)
 
         for i in range(start_epoch, n_epochs):
             if progress_bar:
-                f = IntProgress(min=0, max=batches_per_epoch) # instantiate the bar
+                f = IntProgress(min=0, max=self.batches_per_epoch) # instantiate the bar
                 display(f) # display the bar
                 count = 0
-            for j in range(int(batches_per_epoch/1)):
+            for j in range(int(self.batches_per_epoch)):
                 if progress_bar:
                     f.value += 1 # signal to increment the progress bar
                     count += 1
@@ -311,13 +317,13 @@ class GAN():
                 gan_model.train_on_batch(x_gan, y_gan)
             if (i+1) % n_eval == 0:
                 acc_real, acc_fake = self.summarize_performance(i, latent_dim, n=10, dataset=dataset, scaler=scaler)
-            if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
+            if False:#(i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
                 self.discriminator.save(f'{file_prefix}_temp_discriminator_epoch_{i}_{acc_real}_{acc_fake}.model')
                 self.gan.save(f'{file_prefix}_temp_gan_epoch_{i}_{acc_real}_{acc_fake}.model')
         
-        
+    """   
     def lr_schedule_func(self, initial_lr):
         print('batches per epoch', self.batches_per_epoch)
         #print('in lr_scheduler, ', batches_per_epoch, self.decay_rate, self.lr)
@@ -326,6 +332,7 @@ class GAN():
         decay_steps=float(self.batches_per_epoch,),#self.batches_per_epoch,
         decay_rate=self.decay_rate)
         return lr_schedule
+    """
     """
     def lr_schedule_func(self, batches_per_epoch=20):
         print('in lr_scheduler, ', batches_per_epoch, self.decay_rate, self.lr)
