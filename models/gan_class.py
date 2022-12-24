@@ -1,3 +1,8 @@
+#sources:
+# The training flow implemented in this class is based on the following source:
+#https://machinelearningmastery.com/how-to-develop-a-generative-adversarial-network-for-a-1-dimensional-function-from-scratch-in-keras/
+#https://blog.keras.io/building-autoencoders-in-keras.html
+
 import tensorflow as tf
 import numpy as np
 from ipywidgets import IntProgress
@@ -44,11 +49,9 @@ class GAN():
         self.scaler = scaler
     
     
-    
     def _learning_rate_scheduler(self):
         return(self.lr * self.decay_rate **(-(self.epoch)))
-    
-    # define the standalone discriminator model
+
     def define_discriminator(self, n_inputs, layers):
         #layers is a list of lists; each member is a 3-member list with the format: [layer_type, layer/kernel size, activation]
         self.n_inputs = n_inputs        
@@ -75,7 +78,6 @@ class GAN():
         model.add(generator)
         model.add(discriminator)
         self.gan_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
-
         model.compile(loss='binary_crossentropy',
                       optimizer=self.gan_opt,
                       metrics=['accuracy'])
@@ -111,8 +113,6 @@ class GAN():
             else:
                 return X.astype('float32')/255, y
          
-    
-    # generate points in latent space as input for the generator
     def generate_latent_points(self, latent_dim, n):
         # generate points in the latent space
         x_input = randn(latent_dim * n)
@@ -120,7 +120,6 @@ class GAN():
         x_input = x_input.reshape(n, latent_dim)
         return x_input
  
-    # use the generator to generate n fake examples, with class labels
     def generate_fake_samples(self, generator, latent_dim, n):
         # generate points in latent space
         x_input = self.generate_latent_points(latent_dim, n)
@@ -129,9 +128,7 @@ class GAN():
         # create class labels
         y = zeros((n,1))
         return X, y
-        
-        
-    # evaluate the discriminator and plot real and fake points
+                
     def summarize_performance(self, 
                               epoch, 
                               latent_dim, 
@@ -177,8 +174,7 @@ class GAN():
         
         # scatter plot real and fake data points
         if self.is_plot:
-            #descaling real and fake data with scaler
-            
+            #descaling real and fake data with scaler            
             if len(x_real.shape) == 3:
                 #x_fake is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
@@ -228,7 +224,6 @@ class GAN():
             
         return "{:.2f}".format(acc_real), "{:.2f}".format(acc_fake)
         
-    # train the generator and discriminator
     def train(self, 
               dataset, 
               scaler=None, 
