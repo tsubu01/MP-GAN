@@ -12,20 +12,6 @@ from .deep_model import *
 
 tf.config.run_functions_eagerly(True)
 
-def debug_func(x):
-    #print('shape of input: ', x.shape)
-    print('value of input: ', x)
-        
-def array3ddebug(x):
-    print('shape: ', x.shape) 
-    print('is 1st element == 2nd element? diff is ', np.sum(x[0]-x[1]))
-
-#single_value_func = tf.function(debug_func)
-
-array_3d_func = tf.function(array3ddebug)
-    
-                       
-
 
 class GAN():
     def __init__(self, isplot, 
@@ -60,9 +46,7 @@ class GAN():
     
     
     def _learning_rate_scheduler(self):
-        return self.lr
-        #return(self.lr * self.decay_rate **(-(self.epoch)))
-
+        return(self.lr * self.decay_rate **(-(self.epoch)))
     
     # define the standalone discriminator model
     def define_discriminator(self, n_inputs, layers):
@@ -71,8 +55,6 @@ class GAN():
         #model needs to be compiled because we use it as a standalone model for training on real data.
         # compile model
         model = DeepModel(self.n_inputs, layers).create_model()
-        #uri self.disc_opt = SGD(learning_rate=self.lr_schedule_func(2*self.lr_steps))
-        #uri self.disc_opt = SGD(learning_rate=self.lr_schedule_func(2*self.lr_steps))
         self.disc_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
         model.compile(loss='binary_crossentropy', optimizer=self.disc_opt, metrics=['accuracy'])
         self.discriminator = model
@@ -92,9 +74,7 @@ class GAN():
         model = Sequential()
         model.add(generator)
         model.add(discriminator)
-        #uri self.gan_opt = SGD(learning_rate=self.lr_schedule_func(self.lr_steps))
         self.gan_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
-        #print('>>> decrease lr every {} steps'.format(self.lr_steps))
 
         model.compile(loss='binary_crossentropy',
                       optimizer=self.gan_opt,
@@ -105,7 +85,6 @@ class GAN():
     def generate_real_samples(self, n, realsamplearray):
         keepshape=self.keep_shape
         # generate mnist samples
-        #print(realsamplearray.shape)
         if keepshape:
             sampleshape = realsamplearray[0].shape
         else:
@@ -124,7 +103,6 @@ class GAN():
                 X[i, :] = realsamplearray[np.random.choice(array_inds)].reshape(-1)
         # generate 'true' class labels
         y = ones((n,1))
-        #print(X.shape, y.shape)
         if self.is_table:
             return X, y
         else:
@@ -140,7 +118,6 @@ class GAN():
         x_input = randn(latent_dim * n)
         # reshape into a batch of inputs for the network
         x_input = x_input.reshape(n, latent_dim)
-        #array_3d_func(x_input)
         return x_input
  
     # use the generator to generate n fake examples, with class labels
@@ -148,12 +125,9 @@ class GAN():
         # generate points in latent space
         x_input = self.generate_latent_points(latent_dim, n)
         # predict outputs
-        # debug:
-        X = self.generator.predict(x_input)
-        array_3d_func(X)
+        X = self.generator.predict(x_input, verbose=False)
         # create class labels
         y = zeros((n,1))
-        #print(X.shape, y.shape)
         return X, y
         
         
@@ -194,8 +168,10 @@ class GAN():
         ax.cla()
         plt.plot(epoch_array, real_sample_metrics_array)
         plt.plot(epoch_array, fake_sample_metrics_array)
+        plt.xlabel('epoch')
+        plt.ylabel('discriminator accuracy')
         ax.set_ylim([0,1])
-        plt.legend(['real sample acc', 'synth sample accuracy'])
+        plt.legend(['on real samples', 'on synthetic samples'])
         self.train_fig = fig
         display(fig)        
         
@@ -240,15 +216,14 @@ class GAN():
                 res = "{:.2f}".format(acc_fake)
                 plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray_r')
             plt.close('all')
+            
         if self.is_table:
             fake_then_real = np.concatenate([x_fake[:5], x_real[:5]], axis=0)
             temp_out = pd.DataFrame(fake_then_real)
-            print(temp_out.shape)
             if scaler:
                 display(pd.DataFrame(scaler.inverse_transform(temp_out)))
             else:
                 display(temp_out)
-
             temp_out['fake/real'] = (5*['fake'])+(5*['real'])
             
         return "{:.2f}".format(acc_real), "{:.2f}".format(acc_fake)
@@ -262,7 +237,8 @@ class GAN():
               n_eval=400, #num of epoch intervals to do an eval process
               progress_bar=True,
               save_after_epoch_mult=10, 
-              file_prefix=None):
+              file_prefix=''):
+        
         print('**** now training gan ***')
         epoch_array = [i[0] for i in self.real_sample_metrics.items()]
         if len(epoch_array) > 0:
@@ -292,14 +268,10 @@ class GAN():
                     count += 1
                 x_real, y_real = self.generate_real_samples(half_batch, dataset)
                 # prepare fake examples
-                #single_value_func(n_batch)
                 x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
                 # update discriminator
-
                 d_model.train_on_batch(x_real, y_real)
-
                 d_model.train_on_batch(x_fake, y_fake)
-
                 # prepare points in latent space as input for the generator
                 x_gan = self.generate_latent_points(latent_dim, n_batch)
                 # create inverted labels for the fake samples
