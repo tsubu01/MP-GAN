@@ -1,5 +1,5 @@
 # GAN
-This is a General Purpose GAN (GPGAN) playground where I can experiment with architectures and datasets.\
+This is a General Purpose GAN (GPGAN) playground I built to experiment with architectures and datasets.\
 I tested it both on images (mnist) and tabular data. To switch between tabular data and images you only need to change the\
 model structure, not the internal flow.\
 Usage:\
