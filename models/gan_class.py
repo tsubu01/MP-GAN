@@ -164,7 +164,6 @@ class GAN():
                               n=200, 
                               dataset=None, 
                               scaler=None, 
-                              curr_epoch=1, 
                               save_after_epoch_mult=10):
         
         # prepare real samples
@@ -185,7 +184,6 @@ class GAN():
         self.decayed_lr[epoch] = self.gan_opt._decayed_lr(tf.float32).numpy()
         clear_output(wait = True)
         print('epoch number: ', epoch)
-        print('learning rate: {:.10f}'.format(self.gan_opt._decayed_lr(tf.float32).numpy()))
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1) 
         
@@ -205,13 +203,12 @@ class GAN():
         if self.is_plot:
             #descaling real and fake data with scaler
             
-            
             if len(x_real.shape) == 3:
-                #x_fake for some reason is 4d, so we squeeze it
+                #x_fake is 4d, so we squeeze it
                 dim0, dim1, dim2 = x_real.shape
                 x_fake = np.squeeze(x_fake)
                 if scaler:
-                    print('*** the scaler is not none')
+                    print('*** scaler is found')
                     x_real_vect = x_real.reshape(dim0, dim1*dim2)
                     x_fake_vect = x_fake.reshape(dim0, dim1*dim2)
                 
@@ -222,45 +219,25 @@ class GAN():
                     x_fake = x_fake_vect_descaled.reshape(dim0, dim1, dim2)
                 
                 if not scaler:
-                    print('*** the scaler is none')
+                    print('*** scaler is none')
                     x_real = 255 * x_real
                     x_fake = 255 * x_fake
                   
                 x_real = np.clip(x_real, 0, 255).astype(int)
                 x_fake = np.clip(x_fake, 0, 255).astype(int)
             
-
-
-            print('shape of fake data: ', x_fake.shape)
-            print('checking fake data: size 0, size 1, are both arrays identical. ', x_fake[0].shape, 
-                  x_fake[1].shape, np.all(x_fake[0]==x_fake[1]))
             disparray = np.zeros((28*2,28*n))
-            print(x_fake.shape)
-            
-            for k in range(n):
-                #disparray[:28,28*k:28*(k+1)] = np.clip((np.squeeze(x_fake[k])*255).astype(int),0,255)
-                #disparray[28:, 28*k:28*(k+1)] = np.clip((np.squeeze(x_real[k])*255).astype(int),0,255)
-                
+            for k in range(n):     
                 disparray[:28, 28*k:28*(k+1)] = x_fake[k, :, :]
                 disparray[28:, 28*k:28*(k+1)] = x_real[k, :, :]
-            
-            
-            
-                
+
             fig, axs = pyplot.subplots(1,1)
             axs.imshow(disparray, cmap='gray_r')
-            
-            """
-            fig, (ax0, ax1) = pyplot.subplots(1,2)
-            ax0.imshow(x_fake[0], cmap='gray_r')
-            ax1.imshow(x_real[0], cmap='gray_r')
-            """
-            
-            res = "{:.2f}".format(acc_fake)
 
             if self.is_plot:
                 plt.show()
-            if (curr_epoch + 1) % save_after_epoch_mult == 0:
+            if (epoch + 1) % save_after_epoch_mult == 0:
+                res = "{:.2f}".format(acc_fake)
                 plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray_r')
             plt.close('all')
         if self.is_table:
@@ -285,9 +262,13 @@ class GAN():
               n_eval=400, #num of epoch intervals to do an eval process
               progress_bar=True,
               save_after_epoch_mult=10, 
-              start_epoch=0, 
               file_prefix=None):
         print('**** now training gan ***')
+        epoch_array = [i[0] for i in self.real_sample_metrics.items()]
+        if len(epoch_array) > 0:
+            start_epoch = epoch_array[-1] + 1
+        else:
+            start_epoch = 0
         self.scaler = scaler
         # determine half the size of one batch, for updating the discriminator
         latent_dim = self.latent_dim
@@ -300,6 +281,7 @@ class GAN():
         print('**** batches per epoch: ', self.batches_per_epoch)
 
         for i in range(start_epoch, n_epochs):
+            self.epoch = i
             if progress_bar:
                 f = IntProgress(min=0, max=self.batches_per_epoch) # instantiate the bar
                 display(f) # display the bar
@@ -330,7 +312,6 @@ class GAN():
                                                                 n=10, 
                                                                 dataset=dataset, 
                                                                 scaler=scaler, 
-                                                                curr_epoch=i, 
                                                                 save_after_epoch_mult=save_after_epoch_mult)
             if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
                 print('>>> saving intermediate model')
