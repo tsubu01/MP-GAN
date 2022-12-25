@@ -32,7 +32,6 @@ class GAN():
                  keepshape=True, 
                  is_table=False,
                  lr=0.0002, 
-                 lr_steps=1, 
                  decay_rate=0.9, 
                  scaler=None):
         self.generator = None
@@ -46,7 +45,6 @@ class GAN():
         self.lr = lr
         self.gan_opt = None
         self.disc_opt = None
-        self.lr_steps = lr_steps
         self.decay_rate = decay_rate
         self.real_sample_metrics = {}
         self.fake_sample_metrics = {}
