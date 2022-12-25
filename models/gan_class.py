@@ -1,7 +1,6 @@
 #sources:
 # The training flow implemented in this class is based on the following source:
 #https://machinelearningmastery.com/how-to-develop-a-generative-adversarial-network-for-a-1-dimensional-function-from-scratch-in-keras/
-#https://blog.keras.io/building-autoencoders-in-keras.html
 
 import tensorflow as tf
 import numpy as np
@@ -19,6 +18,16 @@ tf.config.run_functions_eagerly(True)
 
 
 class GAN():
+    """
+    This class handles the creation and training of a GAN model.
+    To train a GAN from scratch, first define a class instance. Then
+    use the define_discriminatror() and define_generator() functions. with
+    the API defined in deep_model.py. Once the GAN is prepared, call the train()
+    function.
+    To generate new samples with a trained GAN, take the GAN's generator object
+    and use its built-in predict() function, with a latent-dim - dimensionl vector as input
+    (or an array of vectors, for multiple simultaneous predictions).
+    """
     def __init__(self, isplot, 
                  keepshape=True, 
                  is_table=False,
@@ -50,7 +59,7 @@ class GAN():
     
     
     def _learning_rate_scheduler(self):
-        return(self.lr * self.decay_rate **(-(self.epoch)))
+        return(self.lr * self.decay_rate ** (-(self.epoch)))
 
     def define_discriminator(self, n_inputs, layers):
         #layers is a list of lists; each member is a 3-member list with the format: [layer_type, layer/kernel size, activation]
@@ -104,14 +113,14 @@ class GAN():
             else:
                 X[i, :] = realsamplearray[np.random.choice(array_inds)].reshape(-1)
         # generate 'true' class labels
-        y = ones((n,1))
+        y = ones((n, 1))
         if self.is_table:
             return X, y
         else:
             if self.scaler:
                 return X, y
             else:
-                return X.astype('float32')/255, y
+                return X.astype('float32') / 255, y
          
     def generate_latent_points(self, latent_dim, n):
         # generate points in the latent space
@@ -126,7 +135,7 @@ class GAN():
         # predict outputs
         X = self.generator.predict(x_input, verbose=False)
         # create class labels
-        y = zeros((n,1))
+        y = zeros((n, 1))
         return X, y
                 
     def summarize_performance(self, 
@@ -167,7 +176,7 @@ class GAN():
         plt.plot(epoch_array, fake_sample_metrics_array)
         plt.xlabel('epoch')
         plt.ylabel('discriminator accuracy')
-        ax.set_ylim([0,1])
+        ax.set_ylim([0, 1])
         plt.legend(['on real samples', 'on synthetic samples'])
         self.train_fig = fig
         display(fig)        
@@ -181,8 +190,8 @@ class GAN():
                 x_fake = np.squeeze(x_fake)
                 if scaler:
                     print('*** scaler is found')
-                    x_real_vect = x_real.reshape(dim0, dim1*dim2)
-                    x_fake_vect = x_fake.reshape(dim0, dim1*dim2)
+                    x_real_vect = x_real.reshape(dim0, dim1 * dim2)
+                    x_fake_vect = x_fake.reshape(dim0, dim1 * dim2)
                 
                     x_real_vect_descaled = scaler.inverse_transform(x_real_vect)
                     x_fake_vect_descaled = scaler.inverse_transform(x_fake_vect)
@@ -198,12 +207,12 @@ class GAN():
                 x_real = np.clip(x_real, 0, 255).astype(int)
                 x_fake = np.clip(x_fake, 0, 255).astype(int)
             
-            disparray = np.zeros((28*2,28*n))
+            disparray = np.zeros((28 * 2, 28 * n))
             for k in range(n):     
-                disparray[:28, 28*k:28*(k+1)] = x_fake[k, :, :]
-                disparray[28:, 28*k:28*(k+1)] = x_real[k, :, :]
+                disparray[:28, 28 * k:28 * (k + 1)] = x_fake[k, :, :]
+                disparray[28:, 28 * k:28 * (k + 1)] = x_real[k, :, :]
 
-            fig, axs = pyplot.subplots(1,1)
+            fig, axs = pyplot.subplots(1, 1)
             axs.imshow(disparray, cmap='gray_r')
 
             if self.is_plot:
@@ -248,7 +257,7 @@ class GAN():
         gan_model = self.gan
         half_batch = int(n_batch / 2)
         # manually enumerate epochs
-        self.batches_per_epoch = int(dataset.shape[0]/n_batch)
+        self.batches_per_epoch = int(dataset.shape[0] / n_batch)
         print('**** batches per epoch: ', self.batches_per_epoch)
 
         for i in range(start_epoch, n_epochs):
@@ -280,7 +289,7 @@ class GAN():
                                                                 dataset=dataset, 
                                                                 scaler=scaler, 
                                                                 save_after_epoch_mult=save_after_epoch_mult)
-            if (i+1) % save_after_epoch_mult == 0 or i+1 == n_epochs:
+            if (i+1) % save_after_epoch_mult == 0 or i + 1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
                 self.discriminator.save(f'{file_prefix}_temp_discriminator_epoch_{i}_{acc_real}_{acc_fake}.model')
