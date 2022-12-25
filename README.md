@@ -10,3 +10,4 @@ In gan_utils.py I implemented simple functions to estimate the utility of synthe
 tell whether the synthetic output is valid, when it comes to tabular data (especially if it consists of many features), it's harder to do it.\
 Two common examination methods look at individual feature distribution, and mutual correlations between feature. You expect the distributions\
 and correlations to be approximately the same in the original and synthetic data.\
+<img width="579" alt="image" src="https://user-images.githubusercontent.com/47942735/209480564-342538c2-2426-4d82-b189-b88e9702e8ae.png">
