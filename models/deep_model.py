@@ -21,6 +21,11 @@ import matplotlib
 
 
 class DeepModel():
+    """
+    This class serves as an API for architecture design by the user.
+    To define a model's architecture, create a class instance and call 
+    create_model() with a list of the required layers.
+    """
     def __init__(self, n_inputs, layers):
         self.n_inputs = n_inputs
         self.layers = layers
