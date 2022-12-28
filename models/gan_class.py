@@ -150,7 +150,8 @@ class GAN():
                               n=200, 
                               dataset=None, 
                               scaler=None, 
-                              save_after_epoch_mult=10):
+                              save_after_epoch_mult=10,
+                              file_prefix=''):
         
         # prepare real samples
         generator = self.generator
@@ -225,7 +226,7 @@ class GAN():
                 plt.show()
             if (epoch + 1) % save_after_epoch_mult == 0:
                 res = "{:.2f}".format(acc_fake)
-                plt.imsave(f'./epoch_{epoch}_accfake{res}.png', disparray, cmap='gray_r')
+                plt.imsave(f'./{file_prefix}_epoch_{epoch}_accfake{res}.png', disparray, cmap='gray_r')
             plt.close('all')
             
         if self.is_table:
@@ -294,7 +295,8 @@ class GAN():
                                                                 n=10, 
                                                                 dataset=dataset, 
                                                                 scaler=scaler, 
-                                                                save_after_epoch_mult=save_after_epoch_mult)
+                                                                save_after_epoch_mult=save_after_epoch_mult,
+                                                                file_prefix=file_prefix)
             if (i+1) % save_after_epoch_mult == 0 or i + 1 == n_epochs:
                 print('>>> saving intermediate model')
                 self.generator.save(f'{file_prefix}_temp_generator_epoch_{i}_{acc_real}_{acc_fake}.model')
