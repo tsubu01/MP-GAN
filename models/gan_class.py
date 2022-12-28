@@ -59,13 +59,17 @@ class GAN():
     def _learning_rate_scheduler(self):
         return(self.lr * self.decay_rate ** (-(self.epoch)))
 
-    def define_discriminator(self, n_inputs, layers):
+    def define_discriminator(self, n_inputs, layers,optimizer=Adam):
         #layers is a list of lists; each member is a 3-member list with the format: [layer_type, layer/kernel size, activation]
         self.n_inputs = n_inputs        
         #model needs to be compiled because we use it as a standalone model for training on real data.
         # compile model
         model = DeepModel(self.n_inputs, layers).create_model()
-        self.disc_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
+        if optimizer == Adam:
+            self.disc_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
+        else:
+            self.disc_opt = optimizer
+        print('discriminator optimizer: ', self.disc_opt)
         model.compile(loss='binary_crossentropy', optimizer=self.disc_opt, metrics=['accuracy'])
         self.discriminator = model
         print('Discriminator is now defined')
@@ -76,7 +80,7 @@ class GAN():
         self.generator = model
         print('Generator is now defined')
         
-    def define_gan(self):
+    def define_gan(self, optimizer=Adam):
         #make discriminator weights not trainable.
         discriminator = self.discriminator
         generator = self.generator
@@ -84,7 +88,11 @@ class GAN():
         model = Sequential()
         model.add(generator)
         model.add(discriminator)
-        self.gan_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
+        if optimizer == Adam:
+            self.gan_opt = Adam(learning_rate=self._learning_rate_scheduler(), beta_1=0.5)
+        else:
+            self.gan_opt = optimizer
+        print('gan optimizer: ', self.gan_opt)
         model.compile(loss='binary_crossentropy',
                       optimizer=self.gan_opt,
                       metrics=['accuracy'])
