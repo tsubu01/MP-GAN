@@ -274,7 +274,6 @@ class GAN():
         for i in range(start_epoch, n_epochs):
             self.epoch = i
             if progress_bar:
-                print('** in progress bar')
                 f = IntProgress(min=0, max=self.batches_per_epoch) # instantiate the bar
                 display(f) # display the bar
                 count = 0
@@ -283,7 +282,6 @@ class GAN():
                     f.value += 1 # signal to increment the progress bar
                     count += 1
                 if self.train_discriminator:
-                    print('**** discriminator training phase ***')
                     x_real, y_real = self.generate_real_samples(half_batch, dataset)
                     # prepare fake examples
                     x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
@@ -291,7 +289,6 @@ class GAN():
                     d_model.train_on_batch(x_real, y_real)
                     d_model.train_on_batch(x_fake, y_fake)
                 
-                print('**** generator training phase ***')
                 # prepare points in latent space as input for the generator
                 x_gan = self.generate_latent_points(latent_dim, n_batch)
                 # create inverted labels for the fake samples
