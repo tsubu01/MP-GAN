@@ -58,22 +58,29 @@ def pairwise_corr(real_df, fake_df):
 def sample_latent_space(model, 
                         random=False, base_point=None, 
                         coor1=0, coor1_min=0, coor1_max=1, coor1_n=10, 
-                        coor2=1, coor2_min=0, coor2_max=0, coor2_n=10,
+                        coor2=1, coor2_min=0, coor2_max=1, coor2_n=10,
                         outdim1=28, outdim2=28):
     
     disparray = np.zeros((outdim1*coor1_n,outdim2*coor2_n))                    
-    coor1_trajectory = np.arange(coor1_min, coor1_max, (coor1_max - coor1_min)/coor1_n)
-    coor2_trajectory = np.arange(coor2_min, coor2_max, (coor2_max - coor2_min)/coor2_n)
-    sampled_point = base_point.copy()                    
-    for k in range(coor1_n): 
-        for j in range(coor2_n):
-            sampled_point[0, coor1] = coor1_trajectory[k]
-            sampled_point[0, coor2] = coor2_trajectory[k]
+    if not random:
+        coor1_trajectory = np.arange(coor1_min, coor1_max, (coor1_max - coor1_min)/coor1_n)
+        coor2_trajectory = np.arange(coor2_min, coor2_max, (coor2_max - coor2_min)/coor2_n)
+        sampled_point = base_point.copy()                    
+        for k in range(coor1_n): 
+            for j in range(coor2_n):
+                sampled_point[0, coor1] = coor1_trajectory[k]
+                sampled_point[0, coor2] = coor2_trajectory[j]
 
-            preds = np.squeeze(model.predict(sampled_point, verbose=False))
+                preds = np.squeeze(model.predict(sampled_point, verbose=False))
 
-            disparray[outdim1*k:outdim1*(k+1), outdim2*j:outdim2*(j+1)] = preds
-
+                disparray[outdim1*k:outdim1*(k+1), outdim2*j:outdim2*(j+1)] = preds
+    else:
+        for k in range(coor1_n): 
+            for j in range(coor2_n):
+                sampled_point = np.random.randn(base_point.shape[0], base_point.shape[1])
+                preds = np.squeeze(model.predict(sampled_point, verbose=False))
+                disparray[outdim1*k:outdim1*(k+1), outdim2*j:outdim2*(j+1)] = preds
+        
     fig, axs = plt.subplots(1,1)
     axs.imshow(disparray, cmap='gray_r')
     plt.show()
