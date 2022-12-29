@@ -54,6 +54,7 @@ class GAN():
         self.epoch = 0
         self.decay_rate = decay_rate
         self.scaler = scaler
+        self.train_discriminator = True
     
     
     def _learning_rate_scheduler(self):
@@ -168,7 +169,7 @@ class GAN():
         
         self.real_sample_metrics[epoch] = acc_real
         self.fake_sample_metrics[epoch] = acc_fake
-        self.decayed_lr[epoch] = self.gan_opt._decayed_lr(tf.float32).numpy()
+        self.decayed_lr[epoch] = self._learning_rate_scheduler()
         clear_output(wait = True)
         print('epoch number: ', epoch)
         fig = plt.figure()
@@ -247,10 +248,13 @@ class GAN():
               n_batch=8,
               n_eval=400, #num of epoch intervals to do an eval process
               progress_bar=True,
-              save_after_epoch_mult=10, 
+              save_after_epoch_mult=10,
+              train_discriminator=True,
               file_prefix=''):
         
+        self.train_discriminator = train_discriminator
         print('**** now training gan ***')
+        print('**** training discriminator: {}'.format(self.train_discriminator))
         epoch_array = [i[0] for i in self.real_sample_metrics.items()]
         if len(epoch_array) > 0:
             start_epoch = epoch_array[-1] + 1
@@ -270,6 +274,7 @@ class GAN():
         for i in range(start_epoch, n_epochs):
             self.epoch = i
             if progress_bar:
+                print('** in progress bar')
                 f = IntProgress(min=0, max=self.batches_per_epoch) # instantiate the bar
                 display(f) # display the bar
                 count = 0
@@ -277,12 +282,16 @@ class GAN():
                 if progress_bar:
                     f.value += 1 # signal to increment the progress bar
                     count += 1
-                x_real, y_real = self.generate_real_samples(half_batch, dataset)
-                # prepare fake examples
-                x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
-                # update discriminator
-                d_model.train_on_batch(x_real, y_real)
-                d_model.train_on_batch(x_fake, y_fake)
+                if self.train_discriminator:
+                    print('**** discriminator training phase ***')
+                    x_real, y_real = self.generate_real_samples(half_batch, dataset)
+                    # prepare fake examples
+                    x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, half_batch)
+                    # update discriminator
+                    d_model.train_on_batch(x_real, y_real)
+                    d_model.train_on_batch(x_fake, y_fake)
+                
+                print('**** generator training phase ***')
                 # prepare points in latent space as input for the generator
                 x_gan = self.generate_latent_points(latent_dim, n_batch)
                 # create inverted labels for the fake samples
