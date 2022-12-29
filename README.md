@@ -4,7 +4,7 @@ The main purpose in using this framework is to gain insights about GAN training 
 I tested it both on images (mnist) and tabular data. To switch between tabular data and images you only need to change the\
 model structure, not the internal flow.\
 Usage\
-> pip3 install -r requirements.txt\
+pip3 install -r requirements.txt\
 Then Run MP-GAN_Notebook.ipynb\
 The GAN architecture can be controlled in the cell 'building the gan'.\
 The folder ./models contains the file deep_model.py, which defines the API through which the user can build the GAN.\
