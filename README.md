@@ -1,7 +1,7 @@
 # GAN
-This is a Multi Purpose GAN (MP-GAN) playground I built to experiment with architectures and datasets.\
-The main purpose in using this framework is to gain insights about GAN training and the structure of the latent space.\
-I tested it both on images (mnist) and tabular data. To switch between tabular data and images you only need to change the\
+A Multi Purpose GAN (MP-GAN) playground I built to experiment with training strategies, architectures and datasets.\
+This framework enables evaluating the utility of synthetic data and exploring the structure of the learned latent space.\
+The framework supports both images (currently, 1-channel) and tabular data. To switch between tabular data and images you only need to change the\
 model structure, not the internal flow.\
 Usage\
 pip3 install -r requirements.txt\
