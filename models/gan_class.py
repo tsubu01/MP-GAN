@@ -27,6 +27,10 @@ class GAN():
     To generate new samples with a trained GAN, take the GAN's generator object
     and use its built-in predict() function, with a latent-dim - dimensionl vector as input
     (or an array of vectors, for multiple simultaneous predictions).
+    is_table indicates if the data is tabular or image.
+    For standardizing the data you can use sklearn.StandardScaler before training and
+    pass the scaler to the GAN. Images currently don't take a scaler (pass None) and are standardized
+    internally by division by 255.
     """
     def __init__(self, isplot, 
                  keepshape=True, 
@@ -251,7 +255,27 @@ class GAN():
               save_after_epoch_mult=10,
               train_discriminator=True,
               file_prefix=''):
-        
+        """
+        The training method.
+        If you are training an already trained GAN, the epoch count is remembered. Pass the
+        new number of epochs you want the training to reach in n_epochs.
+        Args:
+            dataset - np array - [n, h, w] for images or [n, w] for tables.
+            scaler - see __init__()
+            n_batch - batch size (int)
+            n_eval - number of epochs (int)
+            progress_bar - (bool) display a bar that fills every epoch. Note that you may need to run
+            jupyter nbextension enable --py --sys-prefix widgetsnbextension
+            after installing the requirements.txt in order for it to work in jupyter.
+            save_after_epoch_mult - the epoch increments for checkpoint saving (int).
+            train_discriminator - whether the discriminator should be also trained. (bool)
+            file_prefix - to identify your saved files quickly when running multiple experiments. (str).
+        Returns:
+            None.
+            The trained generator will be found in self.generator and can be used to generate data
+            by self.generator.predict(...)
+            
+        """
         self.train_discriminator = train_discriminator
         print('**** now training gan ***')
         print('**** training discriminator: {}'.format(self.train_discriminator))
